@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>West Twitter - Respect</title>
+    <title>Respect - المنصة العالمية</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -14,25 +14,20 @@
 </head>
 <body>
 
-    <div id="loader">
-        <div class="spinner"></div>
-    </div>
+    <div id="loader"><div class="spinner"></div></div>
 
     <div id="auth-screen" class="hidden">
         <div class="auth-box">
-            <i class="fab fa-twitter" style="font-size: 50px; color: #794bc4; margin-bottom: 20px;"></i>
-            <h2>تسجيل الدخول</h2>
-            <p>أهلاً بك في النسخة العالمية</p>
-            
+            <h1 class="brand-logo-large">Respect</h1>
+            <p>سجل دخولك الآن</p>
             <div id="login-form">
                 <input type="email" id="login-email" placeholder="البريد الإلكتروني">
                 <input type="password" id="login-password" placeholder="كلمة المرور">
-                <button onclick="login()">تسجيل الدخول</button>
-                <p class="switch-msg">جديد هنا؟ <span onclick="showSignup()">أنشئ حساباً</span></p>
+                <button onclick="login()">دخول</button>
+                <p class="switch-msg">جديد؟ <span onclick="showSignup()">أنشئ حساباً</span></p>
             </div>
-
             <div id="signup-form" class="hidden">
-                <input type="text" id="signup-name" placeholder="اسمك الظاهر">
+                <input type="text" id="signup-name" placeholder="الاسم الظاهر">
                 <input type="email" id="signup-email" placeholder="البريد الإلكتروني">
                 <input type="password" id="signup-password" placeholder="كلمة المرور">
                 <button onclick="signup()">إنشاء حساب</button>
@@ -44,41 +39,46 @@
     <div id="app-screen" class="hidden">
         <header>
             <div class="header-content">
-                <img src="https://via.placeholder.com/40" id="header-avatar" onclick="openProfileModal()">
-                <i class="fab fa-twitter" style="color: #794bc4; font-size: 24px;"></i>
-                <i class="fas fa-cog" style="color: #0f1419;"></i>
-            </div>
-            <div class="header-tabs">
-                <div class="tab active">الرئيسية</div>
-                <div class="tab">متابعون</div>
+                <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png" id="header-avatar" onclick="openProfileModal()">
+                <h1 class="brand-logo">Respect</h1>
+                <i class="fas fa-cog config-icon"></i>
             </div>
         </header>
 
-        <div class="tweet-box-area">
-            <img src="https://via.placeholder.com/40" id="input-avatar" class="avatar-small">
-            <div class="input-wrapper">
-                <textarea id="tweet-text" placeholder="ما الذي يحدث؟ (استخدم #لإنشاء هاشتاغ)"></textarea>
-                <div class="input-actions">
-                    <label for="file-input"><i class="far fa-image"></i></label>
-                    <input type="file" id="file-input" hidden accept="image/*">
+        <div class="main-container">
+            <div class="tweet-box-area">
+                <div class="input-row">
+                    <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png" id="input-avatar" class="avatar-small">
+                    <textarea id="tweet-text" placeholder="ما الذي يحدث؟"></textarea>
+                </div>
+                <div class="actions-row">
+                    <div class="attach-icon">
+                        <label for="file-input"><i class="far fa-image"></i></label>
+                        <input type="file" id="file-input" hidden accept="image/*">
+                        <span id="file-status"></span>
+                    </div>
                     <button onclick="addPost()" id="post-btn">نشر</button>
                 </div>
                 <div id="upload-bar"></div>
             </div>
-        </div>
 
-        <div id="posts-container"></div>
+            <div id="posts-container">
+                </div>
+        </div>
     </div>
 
     <div id="profile-modal" class="modal hidden">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('profile-modal')">&times;</span>
             <h3>تعديل الملف الشخصي</h3>
-            <img src="" id="edit-avatar-preview" class="profile-preview">
-            <input type="file" id="new-avatar-input" accept="image/*">
+            <div class="profile-header">
+                <img src="https://cdn-icons-png.flaticon.com/512/149/149071.png" id="edit-avatar-preview">
+                <label for="new-avatar-input" class="edit-avatar-btn">تغيير الصورة</label>
+                <input type="file" id="new-avatar-input" hidden accept="image/*">
+            </div>
             <input type="text" id="edit-name" placeholder="الاسم">
             <textarea id="edit-bio" placeholder="نبذة تعريفية (Bio)"></textarea>
-            <button onclick="saveProfile()" class="save-btn">حفظ</button>
+            <button onclick="saveProfile()" class="save-btn">حفظ التغييرات</button>
             <button onclick="logout()" class="logout-btn">تسجيل خروج</button>
         </div>
     </div>
@@ -86,11 +86,11 @@
     <div id="comment-modal" class="modal hidden">
         <div class="modal-content">
             <span class="close-btn" onclick="closeModal('comment-modal')">&times;</span>
-            <h3>التعليقات</h3>
+            <h3>الردود</h3>
             <div id="comments-list"></div>
             <div class="comment-input-area">
-                <input type="text" id="comment-text" placeholder="ردك...">
-                <button onclick="sendComment()">إرسال</button>
+                <input type="text" id="comment-text" placeholder="غرد ردك...">
+                <button onclick="sendComment()">رد</button>
             </div>
         </div>
     </div>
