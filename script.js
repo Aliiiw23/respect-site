@@ -1,4 +1,4 @@
-// ================= إعدادات Firebase (الخاصة بك) =================
+// ================= إعدادات Firebase =================
 const firebaseConfig = {
   apiKey: "AIzaSyAX4cGWq8T3vmtOc4zALmlv6WKDEhiwZgY",
   authDomain: "respect-site.firebaseapp.com",
@@ -9,227 +9,133 @@ const firebaseConfig = {
   measurementId: "G-YXB14EJVV0"
 };
 
-// تهيئة Firebase (باستخدام مكتبات Compat المتوافقة مع HTML)
+// ================= رابط الديسكورد (WEBHOOK) =================
+// 🔴 استبدل الرابط أدناه برابط الويب هوك الخاص بروم الديسكورد 🔴
+const DISCORD_WEBHOOK_URL = "ضع_رابط_الويب_هوك_هنا"; 
+
+
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 const storage = firebase.storage();
 
-// ================= المتغيرات وعناصر HTML =================
-// حاويات الشاشات
+// العناصر
 const authContainer = document.getElementById('auth-container');
 const appContainer = document.getElementById('app-container');
-
-// عناصر تسجيل الدخول
 const loginForm = document.getElementById('login-form');
 const signupForm = document.getElementById('signup-form');
-const showSignupBtn = document.getElementById('show-signup');
-const showLoginBtn = document.getElementById('show-login');
-const loginBtn = document.getElementById('login-btn');
-const signupBtn = document.getElementById('signup-btn');
-const logoutBtn = document.getElementById('logout-btn');
-
-// عناصر التطبيق
 const tweetInput = document.getElementById('tweetInput');
 const tweetBtn = document.getElementById('tweetBtn');
-const feedContainer = document.getElementById('feedContainer');
-const currentUserSpan = document.getElementById('current-user-name');
 const imageInput = document.getElementById('imageInput');
-const uploadProgressBar = document.getElementById('uploadProgressBar');
 const fileNameSpan = document.getElementById('fileName');
 
-// رابط الديسكورد (اختياري - ضعه إذا أردت استمراره)
-const DISCORD_WEBHOOK_URL = ""; 
-
-
-// ================= أولاً: مراقبة حالة المستخدم (هل هو مسجل دخول؟) =================
+// مراقبة الدخول
 auth.onAuthStateChanged(user => {
     if (user) {
-        // المستخدم مسجل دخول -> أظهر التطبيق وأخفِ شاشة الدخول
         authContainer.classList.add('hidden');
         appContainer.classList.remove('hidden');
-        currentUserSpan.textContent = user.displayName || user.email; // عرض الاسم
-        
-        // بدء الاستماع للمنشورات
-        loadPostsRealtime();
+        document.getElementById('current-user-name').textContent = user.displayName;
+        loadPosts();
     } else {
-        // المستخدم غير مسجل -> أظهر شاشة الدخول وأخفِ التطبيق
         appContainer.classList.add('hidden');
         authContainer.classList.remove('hidden');
-        feedContainer.innerHTML = ''; // تنظيف المنشورات
     }
 });
 
+// أزرار التبديل والخروج
+document.getElementById('show-signup').onclick = () => { loginForm.classList.add('hidden'); signupForm.classList.remove('hidden'); };
+document.getElementById('show-login').onclick = () => { signupForm.classList.add('hidden'); loginForm.classList.remove('hidden'); };
+document.getElementById('logout-btn').onclick = () => auth.signOut();
 
-// ================= ثانياً: وظائف تسجيل الدخول والخروج =================
+// تسجيل دخول وإنشاء حساب
+document.getElementById('signup-btn').onclick = () => {
+    const u = document.getElementById('signup-username').value;
+    const e = document.getElementById('signup-email').value;
+    const p = document.getElementById('signup-password').value;
+    auth.createUserWithEmailAndPassword(e, p).then(c => c.user.updateProfile({displayName: u})).catch(e => alert(e.message));
+};
 
-// التبديل بين فورم الدخول وإنشاء الحساب
-showSignupBtn.addEventListener('click', () => {
-    loginForm.classList.add('hidden');
-    signupForm.classList.remove('hidden');
-});
-showLoginBtn.addEventListener('click', () => {
-    signupForm.classList.add('hidden');
-    loginForm.classList.remove('hidden');
-});
+document.getElementById('login-btn').onclick = () => {
+    auth.signInWithEmailAndPassword(document.getElementById('login-email').value, document.getElementById('login-password').value).catch(e => alert(e.message));
+};
 
-// إنشاء حساب جديد
-signupBtn.addEventListener('click', () => {
-    const email = document.getElementById('signup-email').value;
-    const password = document.getElementById('signup-password').value;
-    const username = document.getElementById('signup-username').value;
+// اختيار صورة
+imageInput.onchange = function() { if(this.files[0]) fileNameSpan.textContent = "تم اختيار صورة"; };
 
-    if(!email || !password || !username) { alert("يرجى ملء كل الحقول"); return; }
-
-    auth.createUserWithEmailAndPassword(email, password)
-        .then(cred => {
-            // إضافة اسم المستخدم للملف الشخصي
-            return cred.user.updateProfile({ displayName: username });
-        })
-        .catch(err => alert("خطأ في الإنشاء: " + err.message));
-});
-
-// تسجيل الدخول
-loginBtn.addEventListener('click', () => {
-    const email = document.getElementById('login-email').value;
-    const password = document.getElementById('login-password').value;
-    auth.signInWithEmailAndPassword(email, password)
-        .catch(err => alert("خطأ في الدخول: " + err.message));
-});
-
-// تسجيل الخروج
-logoutBtn.addEventListener('click', () => {
-    auth.signOut();
-});
-
-
-// ================= ثالثاً: وظائف النشر ورفع الصور =================
-
-// إظهار اسم الملف المختار
-imageInput.addEventListener('change', function() {
-    if(this.files[0]) {
-        fileNameSpan.textContent = this.files[0].name;
-    }
-});
-
-tweetBtn.addEventListener('click', async () => {
+// === عملية النشر وإرسال للديسكورد ===
+tweetBtn.onclick = async () => {
     const text = tweetInput.value;
-    const imageFile = imageInput.files[0];
+    const file = imageInput.files[0];
     const user = auth.currentUser;
 
-    if ((text.trim() === "" && !imageFile) || !user) {
-        alert("اكتب شيئاً أو اختر صورة للنشر!");
-        return;
-    }
+    if ((!text && !file) || !user) return;
 
-    // تعطيل الزر أثناء النشر
     tweetBtn.disabled = true;
     tweetBtn.textContent = "جاري النشر...";
-
     let imageUrl = null;
 
     try {
-        // 1. إذا توجد صورة، ارفعها أولاً
-        if (imageFile) {
-            // اسم فريد للصورة باستخدام الوقت
-            const storageRef = storage.ref(`posts/${Date.now()}_${imageFile.name}`);
-            const uploadTask = storageRef.put(imageFile);
-
-            // انتظار اكتمال الرفع والحصول على الرابط
-            await new Promise((resolve, reject) => {
-                uploadTask.on('state_changed', 
-                    (snapshot) => {
-                        // تحديث شريط التقدم
-                        let progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                        uploadProgressBar.style.width = progress + '%';
-                    },
-                    (error) => reject(error),
-                    () => {
-                        uploadTask.snapshot.ref.getDownloadURL().then(url => {
-                            imageUrl = url;
-                            resolve();
-                        });
-                    }
-                );
-            });
+        // 1. رفع الصورة لفايربيس
+        if (file) {
+            const ref = storage.ref(`posts/${Date.now()}_${file.name}`);
+            await ref.put(file);
+            imageUrl = await ref.getDownloadURL();
         }
 
-        // 2. حفظ بيانات المنشور في قاعدة البيانات Firestore
+        // 2. الحفظ في الموقع
         await db.collection('posts').add({
             text: text,
             imageUrl: imageUrl,
-            authorName: user.displayName,
-            authorId: user.uid,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp() // وقت السيرفر
+            author: user.displayName,
+            date: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        // 3. إرسال للديسكورد (اختياري)
-        if(DISCORD_WEBHOOK_URL && text) {
-             fetch(DISCORD_WEBHOOK_URL, {
-                 method: 'POST',
-                 headers: { 'Content-Type': 'application/json' },
-                 body: JSON.stringify({ content: `👤 **${user.displayName}:** ${text}` })
-             });
+        // 3. الإرسال إلى ديسكورد
+        if (DISCORD_WEBHOOK_URL !== "ضع_رابط_الويب_هوك_هنا") {
+            const discordPayload = {
+                username: "Respect Bot",
+                content: `📢 **منشور جديد من ${user.displayName}:**\n${text}`,
+            };
+            // إذا توجد صورة نرفقها
+            if (imageUrl) {
+                discordPayload.embeds = [{ image: { url: imageUrl } }];
+            }
+
+            fetch(DISCORD_WEBHOOK_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(discordPayload)
+            });
         }
 
-        // تنظيف الحقول بعد النجاح
+        // تنظيف
         tweetInput.value = "";
         imageInput.value = "";
         fileNameSpan.textContent = "";
-        uploadProgressBar.style.width = "0%";
 
-    } catch (error) {
-        console.error("Error adding post: ", error);
-        alert("حدث خطأ أثناء النشر!");
-    } finally {
-        // إعادة تفعيل الزر
-        tweetBtn.disabled = false;
-        tweetBtn.textContent = "نشر";
+    } catch (err) {
+        alert("خطأ: " + err.message);
     }
-});
+    tweetBtn.disabled = false;
+    tweetBtn.textContent = "نشر";
+};
 
-
-// ================= رابعاً: جلب المنشورات وعرضها (Realtime) =================
-function loadPostsRealtime() {
-    // الاستماع لأي تغيير في مجموعة 'posts' وترتيبها حسب الوقت
-    db.collection('posts').orderBy('createdAt', 'desc').onSnapshot(snapshot => {
-        feedContainer.innerHTML = ''; // مسح القائمة القديمة
-
-        snapshot.forEach(doc => {
-            const post = doc.data();
-            showPostInFeed(post);
+// عرض المنشورات
+function loadPosts() {
+    db.collection('posts').orderBy('date', 'desc').onSnapshot(snap => {
+        const container = document.getElementById('feedContainer');
+        container.innerHTML = "";
+        snap.forEach(doc => {
+            const p = doc.data();
+            const imgHtml = p.imageUrl ? `<img src="${p.imageUrl}" class="post-image">` : '';
+            container.innerHTML += `
+                <div class="post">
+                    <div class="post-body">
+                        <div class="post-header"><strong>${p.author}</strong> <span class="time">. الآن</span></div>
+                        <p>${p.text}</p>
+                        ${imgHtml}
+                    </div>
+                </div>`;
         });
     });
-}
-
-// دالة مساعدة لرسم المنشور في HTML
-function showPostInFeed(post) {
-    const postDiv = document.createElement('div');
-    postDiv.classList.add('post');
-
-    // تحويل وقت فايربيس لوقت مقروء
-    let timeString = "";
-    if(post.createdAt) {
-        timeString = new Date(post.createdAt.toDate()).toLocaleTimeString('ar-EG', {hour: '2-digit', minute:'2-digit'});
-    }
-
-    // تجهيز HTML الصورة إذا وجدت
-    let imageHTML = "";
-    if(post.imageUrl) {
-        imageHTML = `<img src="${post.imageUrl}" class="post-image" alt="post image">`;
-    }
-
-    postDiv.innerHTML = `
-        <div class="post-avatar"><i class="fas fa-user-circle"></i></div>
-        <div class="post-body">
-            <div class="post-header">
-                <span class="username">${post.authorName}</span>
-                <span class="time">. ${timeString}</span>
-            </div>
-            <div class="post-content">
-                <p>${post.text}</p>
-                ${imageHTML} </div>
-        </div>
-    `;
-    feedContainer.appendChild(postDiv);
 }
