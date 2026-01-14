@@ -12,30 +12,29 @@ const firebaseConfig = {
 // 🔴 رابط ديسكورد هنا
 const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1413332579460976783/hOqe3xtgWIFQ9gS_O5khVaEh4vhBiC51Z7hnf7PvV3sf6u5nBTv69eN0_Gens6GuMuKM"; 
 
-// تهيئة Firebase بأمان
-try {
-    firebase.initializeApp(firebaseConfig);
-} catch (e) {
-    console.error("Firebase Init Error", e);
-}
-
+// التهيئة
+try { firebase.initializeApp(firebaseConfig); } catch(e){ console.error(e); }
 const auth = firebase.auth();
 const db = firebase.firestore();
 const storage = firebase.storage();
 
 let currentUser = null;
-let currentPostId = null;
+const defaultAvatar = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 
-// مراقبة الدخول
+// === مراقبة الدخول ===
 auth.onAuthStateChanged(async (user) => {
-    document.getElementById('loader').classList.add('hidden'); // إخفاء التحميل
+    document.getElementById('loader').classList.add('hidden');
     if (user) {
         currentUser = user;
-        // جلب البايو
+        // جلب البيانات الإضافية من قاعدة البيانات لضمان أنها حديثة
         try {
-            const doc = await db.collection('users').doc(user.uid).get();
-            if(doc.exists) currentUser.bio = doc.data().bio;
-        } catch(e) { console.log("No bio yet"); }
+            const userDoc = await db.collection('users').doc(user.uid).get();
+            if(userDoc.exists) {
+                currentUser.bio = userDoc.data().bio || "";
+                // إذا كانت الصورة محفوظة في القاعدة نستخدمها
+                if(userDoc.data().photoURL) currentUser.photoURL_db = userDoc.data().photoURL;
+            }
+        } catch(e) { console.log("New user"); }
         
         showApp();
     } else {
@@ -43,7 +42,7 @@ auth.onAuthStateChanged(async (user) => {
     }
 });
 
-// دوال التنقل
+// === التنقل والواجهة ===
 function showAuth() {
     document.getElementById('auth-screen').classList.remove('hidden');
     document.getElementById('app-screen').classList.add('hidden');
@@ -52,31 +51,26 @@ function showApp() {
     document.getElementById('auth-screen').classList.add('hidden');
     document.getElementById('app-screen').classList.remove('hidden');
     updateUI();
-    loadPosts();
+    loadPostsRealtime(); // استدعاء البيانات
 }
 function updateUI() {
-    const avatar = currentUser.photoURL || 'https://via.placeholder.com/40';
-    document.getElementById('header-avatar').src = avatar;
-    document.getElementById('input-avatar').src = avatar;
-    document.getElementById('edit-avatar-preview').src = avatar;
+    // استخدام الصورة من القاعدة أو من Auth أو الافتراضية
+    const pic = currentUser.photoURL_db || currentUser.photoURL || defaultAvatar;
+    document.getElementById('header-avatar').src = pic;
+    document.getElementById('input-avatar').src = pic;
+    document.getElementById('edit-avatar-preview').src = pic;
     document.getElementById('edit-name').value = currentUser.displayName || "";
     document.getElementById('edit-bio').value = currentUser.bio || "";
 }
 
-// تسجيل الدخول
-function showSignup() { 
-    document.getElementById('login-form').classList.add('hidden'); 
-    document.getElementById('signup-form').classList.remove('hidden'); 
-}
-function showLogin() { 
-    document.getElementById('signup-form').classList.add('hidden'); 
-    document.getElementById('login-form').classList.remove('hidden'); 
-}
+// === تسجيل الدخول ===
+function showSignup(){ document.getElementById('login-form').classList.add('hidden'); document.getElementById('signup-form').classList.remove('hidden'); }
+function showLogin(){ document.getElementById('signup-form').classList.add('hidden'); document.getElementById('login-form').classList.remove('hidden'); }
 
 function login() {
     const e = document.getElementById('login-email').value;
     const p = document.getElementById('login-password').value;
-    auth.signInWithEmailAndPassword(e, p).catch(err => alert("خطأ: " + err.message));
+    auth.signInWithEmailAndPassword(e, p).catch(err => alert(err.message));
 }
 function signup() {
     const n = document.getElementById('signup-name').value;
@@ -84,11 +78,11 @@ function signup() {
     const p = document.getElementById('signup-password').value;
     auth.createUserWithEmailAndPassword(e, p)
         .then(cred => cred.user.updateProfile({displayName: n}))
-        .catch(err => alert("خطأ: " + err.message));
+        .catch(err => alert(err.message));
 }
-function logout() { auth.signOut().then(() => location.reload()); }
+function logout(){ auth.signOut().then(()=>location.reload()); }
 
-// النشر
+// === النشر ===
 async function addPost() {
     const text = document.getElementById('tweet-text').value;
     const file = document.getElementById('file-input').files[0];
@@ -96,8 +90,8 @@ async function addPost() {
 
     if (!text && !file) return;
 
-    btn.disabled = true;
-    btn.textContent = "...";
+    btn.disabled = true; // تعطيل الزر لمنع التكرار
+    btn.textContent = "جاري النشر...";
     
     let imageUrl = null;
     try {
@@ -112,22 +106,25 @@ async function addPost() {
             imageUrl = await ref.getDownloadURL();
         }
 
+        // الحفظ في قاعدة البيانات
+        const userPic = currentUser.photoURL_db || currentUser.photoURL || defaultAvatar;
+        
         await db.collection('posts').add({
             text: text,
             imageUrl: imageUrl,
             authorId: currentUser.uid,
             authorName: currentUser.displayName,
-            authorPhoto: currentUser.photoURL,
+            authorPhoto: userPic,
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
             likes: [],
             retweets: 0
         });
 
-        // ديسكورد
-        if (DISCORD_WEBHOOK_URL.startsWith("http")) {
+        // إرسال للديسكورد
+        if (DISCORD_WEBHOOK_URL && DISCORD_WEBHOOK_URL.startsWith("http")) {
             const payload = {
                 username: "Respect Bot",
-                content: `🟣 **${currentUser.displayName}:**\n${text}`
+                content: `📢 **${currentUser.displayName}:**\n${text}`
             };
             if(imageUrl) payload.embeds = [{image: {url: imageUrl}}];
             fetch(DISCORD_WEBHOOK_URL, {
@@ -136,50 +133,56 @@ async function addPost() {
             });
         }
 
-        // تنظيف
+        // تنظيف الحقول
         document.getElementById('tweet-text').value = "";
         document.getElementById('file-input').value = "";
         document.getElementById('upload-bar').style.width = "0%";
+        document.getElementById('file-status').textContent = "";
 
     } catch (e) {
-        alert("فشل النشر: " + e.message);
+        alert("حدث خطأ: " + e.message);
+    } finally {
+        // إعادة تفعيل الزر دائماً سواء نجح أو فشل
+        btn.disabled = false;
+        btn.textContent = "نشر";
     }
-    btn.disabled = false;
-    btn.textContent = "نشر";
 }
 
-// عرض المنشورات
-function loadPosts() {
+// === عرض المنشورات (Realtime) ===
+function loadPostsRealtime() {
     db.collection('posts').orderBy('createdAt', 'desc').onSnapshot(snap => {
         const container = document.getElementById('posts-container');
         container.innerHTML = "";
+        
         snap.forEach(doc => {
             const p = doc.data();
             const id = doc.id;
             const isLiked = p.likes && p.likes.includes(currentUser.uid);
-            const userImg = p.authorPhoto || 'https://via.placeholder.com/40';
+            const pic = p.authorPhoto || defaultAvatar;
             
             // زر الحذف
             let delBtn = "";
-            if (p.authorId === currentUser.uid) {
-                delBtn = `<i class="fas fa-trash" style="color:red; margin-right:auto; cursor:pointer;" onclick="deletePost('${id}')"></i>`;
+            if(p.authorId === currentUser.uid) {
+                delBtn = `<i class="fas fa-trash-alt" style="color:#e0245e; cursor:pointer;" onclick="deletePost('${id}')"></i>`;
             }
 
             container.innerHTML += `
             <div class="post">
-                <img src="${userImg}" class="avatar-small">
+                <img src="${pic}" class="avatar-small">
                 <div class="post-content">
                     <div class="post-header">
-                        <strong>${p.authorName}</strong> <span>@${p.authorName.replace(/\s/g,'')}</span>
+                        <div class="user-info">
+                            <strong>${p.authorName}</strong>
+                            <span>@${p.authorName ? p.authorName.replace(/\s/g,'') : 'user'}</span>
+                        </div>
                         ${delBtn}
                     </div>
                     <div class="post-text">${p.text}</div>
                     ${p.imageUrl ? `<img src="${p.imageUrl}" class="post-img">` : ''}
+                    
                     <div class="post-actions">
                         <div onclick="openComments('${id}')"><i class="far fa-comment"></i></div>
-                        <div onclick="retweet('${id}', ${p.retweets || 0})" class="${p.retweets > 0 ? 'retweeted' : ''}">
-                            <i class="fas fa-retweet"></i> <span>${p.retweets || 0}</span>
-                        </div>
+                        <div onclick="retweet('${id}', ${p.retweets || 0})"><i class="fas fa-retweet"></i> <span>${p.retweets||0}</span></div>
                         <div onclick="toggleLike('${id}')" class="${isLiked ? 'liked' : ''}">
                             <i class="${isLiked ? 'fas' : 'far'} fa-heart"></i> <span>${p.likes ? p.likes.length : 0}</span>
                         </div>
@@ -190,7 +193,7 @@ function loadPosts() {
     });
 }
 
-// التفاعلات
+// === التفاعلات ===
 function toggleLike(id) {
     const ref = db.collection('posts').doc(id);
     ref.get().then(doc => {
@@ -202,19 +205,16 @@ function toggleLike(id) {
         }
     });
 }
-function retweet(id, count) {
-    db.collection('posts').doc(id).update({ retweets: count + 1 });
-}
-function deletePost(id) {
-    if(confirm("حذف المنشور؟")) db.collection('posts').doc(id).delete();
-}
+function retweet(id, c) { db.collection('posts').doc(id).update({ retweets: c + 1 }); }
+function deletePost(id) { if(confirm("حذف؟")) db.collection('posts').doc(id).delete(); }
 
-// التعليقات
+// === التعليقات والبروفايل ===
+let currentPostId = null;
 function openComments(id) {
     currentPostId = id;
     document.getElementById('comment-modal').classList.remove('hidden');
     const list = document.getElementById('comments-list');
-    list.innerHTML = "loading...";
+    list.innerHTML = "جاري التحميل...";
     db.collection('posts').doc(id).collection('comments').orderBy('createdAt').onSnapshot(snap => {
         list.innerHTML = "";
         snap.forEach(d => {
@@ -232,23 +232,36 @@ function sendComment() {
     document.getElementById('comment-text').value = "";
 }
 
-// البروفايل
-function openProfileModal() { document.getElementById('profile-modal').classList.remove('hidden'); }
-function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+// حفظ البروفايل في قاعدة البيانات
+function openProfileModal(){ document.getElementById('profile-modal').classList.remove('hidden'); }
+function closeModal(id){ document.getElementById(id).classList.add('hidden'); }
 
 async function saveProfile() {
     const name = document.getElementById('edit-name').value;
     const bio = document.getElementById('edit-bio').value;
     const file = document.getElementById('new-avatar-input').files[0];
     
-    let url = currentUser.photoURL;
+    let url = currentUser.photoURL_db || currentUser.photoURL;
     if (file) {
         const ref = storage.ref(`avatars/${currentUser.uid}`);
         await ref.put(file);
         url = await ref.getDownloadURL();
     }
     
+    // تحديث Auth
     await currentUser.updateProfile({displayName: name, photoURL: url});
-    await db.collection('users').doc(currentUser.uid).set({bio: bio, photoURL: url, displayName: name}, {merge:true});
+    // تحديث قاعدة البيانات (هذا الأهم للحفظ)
+    await db.collection('users').doc(currentUser.uid).set({
+        displayName: name,
+        bio: bio,
+        photoURL: url
+    }, { merge: true });
+
+    alert("تم الحفظ!");
     location.reload();
 }
+
+// عرض اسم الملف المختار
+document.getElementById('file-input').onchange = function() {
+    if(this.files[0]) document.getElementById('file-status').textContent = "تم اختيار صورة";
+};
