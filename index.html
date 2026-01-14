@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>West Twitter - ريسبكت</title>
+    <title>West Twitter - Respect</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -13,89 +14,82 @@
 </head>
 <body>
 
-    <div id="loader" class="loader-wrapper"><div class="spinner"></div></div>
+    <div id="loader">
+        <div class="spinner"></div>
+    </div>
 
-    <div id="auth-screen" class="auth-container hidden">
+    <div id="auth-screen" class="hidden">
         <div class="auth-box">
-            <i class="fab fa-twitter" style="font-size: 40px; color: #794bc4; margin-bottom: 20px;"></i>
+            <i class="fab fa-twitter" style="font-size: 50px; color: #794bc4; margin-bottom: 20px;"></i>
             <h2>تسجيل الدخول</h2>
+            <p>أهلاً بك في النسخة العالمية</p>
+            
             <div id="login-form">
                 <input type="email" id="login-email" placeholder="البريد الإلكتروني">
                 <input type="password" id="login-password" placeholder="كلمة المرور">
-                <button onclick="login()">دخول</button>
-                <p>ليس لديك حساب؟ <span onclick="showSignup()">سجل الآن</span></p>
+                <button onclick="login()">تسجيل الدخول</button>
+                <p class="switch-msg">جديد هنا؟ <span onclick="showSignup()">أنشئ حساباً</span></p>
             </div>
+
             <div id="signup-form" class="hidden">
-                <input type="text" id="signup-name" placeholder="الاسم">
+                <input type="text" id="signup-name" placeholder="اسمك الظاهر">
                 <input type="email" id="signup-email" placeholder="البريد الإلكتروني">
                 <input type="password" id="signup-password" placeholder="كلمة المرور">
                 <button onclick="signup()">إنشاء حساب</button>
-                <p>لديك حساب؟ <span onclick="showLogin()">دخول</span></p>
+                <p class="switch-msg">لديك حساب؟ <span onclick="showLogin()">دخول</span></p>
             </div>
         </div>
     </div>
 
-    <div id="app-screen" class="app-container hidden">
-        
-        <header class="top-nav">
-            <div class="nav-icons">
-                <i class="fas fa-cog"></i>
-                <div class="nav-center">
-                    <a href="#" class="active"><i class="fas fa-home"></i></a>
-                    <a href="#"><i class="fas fa-search"></i></a>
-                    <a href="#"><i class="fas fa-bell"></i></a>
-                    <a href="#"><i class="fas fa-envelope"></i></a>
-                </div>
-                <img src="https://via.placeholder.com/40" id="header-avatar" class="header-avatar" onclick="openProfileModal()">
+    <div id="app-screen" class="hidden">
+        <header>
+            <div class="header-content">
+                <img src="https://via.placeholder.com/40" id="header-avatar" onclick="openProfileModal()">
+                <i class="fab fa-twitter" style="color: #794bc4; font-size: 24px;"></i>
+                <i class="fas fa-cog" style="color: #0f1419;"></i>
+            </div>
+            <div class="header-tabs">
+                <div class="tab active">الرئيسية</div>
+                <div class="tab">متابعون</div>
             </div>
         </header>
 
-        <main class="feed">
-            <div class="feed-title"><h3>الرئيسية</h3></div>
-
-            <div class="tweet-box">
-                <div class="input-area">
-                    <img src="https://via.placeholder.com/40" id="input-avatar" class="avatar-small">
-                    <textarea id="tweet-text" placeholder="ما الذي يحدث؟ (استخدم #لإنشاء هاشتاغ)"></textarea>
+        <div class="tweet-box-area">
+            <img src="https://via.placeholder.com/40" id="input-avatar" class="avatar-small">
+            <div class="input-wrapper">
+                <textarea id="tweet-text" placeholder="ما الذي يحدث؟ (استخدم #لإنشاء هاشتاغ)"></textarea>
+                <div class="input-actions">
+                    <label for="file-input"><i class="far fa-image"></i></label>
+                    <input type="file" id="file-input" hidden accept="image/*">
+                    <button onclick="addPost()" id="post-btn">نشر</button>
                 </div>
-                <div class="actions-area">
-                    <div class="icons">
-                        <label for="file-input"><i class="far fa-image"></i></label>
-                        <input type="file" id="file-input" hidden accept="image/*">
-                        <span id="file-name"></span>
-                    </div>
-                    <button id="post-btn" onclick="addPost()">نشر</button>
-                </div>
-                <div id="upload-bar" class="progress-bar"></div>
+                <div id="upload-bar"></div>
             </div>
+        </div>
 
-            <div id="posts-container">
-                </div>
-        </main>
+        <div id="posts-container"></div>
     </div>
 
     <div id="profile-modal" class="modal hidden">
         <div class="modal-content">
-            <span class="close" onclick="closeModal('profile-modal')">&times;</span>
+            <span class="close-btn" onclick="closeModal('profile-modal')">&times;</span>
             <h3>تعديل الملف الشخصي</h3>
-            <div class="profile-edit-form">
-                <img src="" id="edit-avatar-preview" class="profile-preview">
-                <input type="file" id="new-avatar-input" accept="image/*">
-                <input type="text" id="edit-name" placeholder="الاسم">
-                <textarea id="edit-bio" placeholder="البايو (Bio)"></textarea>
-                <button onclick="saveProfile()" class="save-btn">حفظ التغييرات</button>
-                <button onclick="logout()" class="logout-btn">تسجيل خروج</button>
-            </div>
+            <img src="" id="edit-avatar-preview" class="profile-preview">
+            <input type="file" id="new-avatar-input" accept="image/*">
+            <input type="text" id="edit-name" placeholder="الاسم">
+            <textarea id="edit-bio" placeholder="نبذة تعريفية (Bio)"></textarea>
+            <button onclick="saveProfile()" class="save-btn">حفظ</button>
+            <button onclick="logout()" class="logout-btn">تسجيل خروج</button>
         </div>
     </div>
 
     <div id="comment-modal" class="modal hidden">
         <div class="modal-content">
-            <span class="close" onclick="closeModal('comment-modal')">&times;</span>
+            <span class="close-btn" onclick="closeModal('comment-modal')">&times;</span>
             <h3>التعليقات</h3>
-            <div id="comments-list" class="comments-list"></div>
-            <div class="comment-input">
-                <input type="text" id="comment-text" placeholder="اكتب تعليقاً...">
+            <div id="comments-list"></div>
+            <div class="comment-input-area">
+                <input type="text" id="comment-text" placeholder="ردك...">
                 <button onclick="sendComment()">إرسال</button>
             </div>
         </div>
