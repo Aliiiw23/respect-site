@@ -11,7 +11,7 @@ const firebaseConfig = {
 
 // ================= رابط الديسكورد (WEBHOOK) =================
 // 🔴 استبدل الرابط أدناه برابط الويب هوك الخاص بروم الديسكورد 🔴
-const DISCORD_WEBHOOK_URL = "ضع_رابط_الويب_هوك_هنا"; 
+const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1413332579460976783/hOqe3xtgWIFQ9gS_O5khVaEh4vhBiC51Z7hnf7PvV3sf6u5nBTv69eN0_Gens6GuMuKM"; 
 
 
 firebase.initializeApp(firebaseConfig);
