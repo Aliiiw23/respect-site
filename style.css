@@ -1,234 +1,61 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+/* الكود الأساسي السابق ... */
+/* تأكد من إضافة هذه الأكواد الجديدة للتعامل مع تسجيل الدخول */
+
+.hidden {
+    display: none !important;
 }
 
-body {
+.auth-wrapper {
     display: flex;
     justify-content: center;
+    align-items: center;
     height: 100vh;
-    background-color: #fff;
-    color: #0f1419;
-}
-
-/* Sidebar (Right) */
-.sidebar {
-    width: 250px;
-    border-left: 1px solid #eff3f4;
-    padding: 20px;
-    height: 100vh;
-    position: sticky;
-    top: 0;
-}
-
-.logo h2 {
-    color: #1d9bf0;
-    margin-bottom: 20px;
-    font-style: italic;
-}
-
-.sidebar-menu a {
-    display: flex;
-    align-items: center;
-    text-decoration: none;
-    color: #0f1419;
-    font-size: 20px;
-    padding: 15px 10px;
-    border-radius: 30px;
-    transition: 0.2s;
-}
-
-.sidebar-menu a:hover {
-    background-color: #e8f5fe;
-    color: #1d9bf0;
-}
-
-.sidebar-menu a i {
-    margin-left: 20px;
-    font-size: 24px;
-}
-
-.sidebar-tweet-btn {
-    background-color: #1d9bf0;
-    color: white;
-    border: none;
     width: 100%;
-    padding: 15px;
-    border-radius: 30px;
-    font-weight: bold;
-    font-size: 16px;
-    margin-top: 20px;
-    cursor: pointer;
-}
-
-/* Feed (Center) */
-.feed {
-    width: 600px;
-    border-left: 1px solid #eff3f4;
-    overflow-y: scroll;
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-}
-.feed::-webkit-scrollbar { display: none; }
-
-.feed-header {
-    position: sticky;
-    top: 0;
-    background-color: rgba(255,255,255,0.9);
-    padding: 15px;
-    border-bottom: 1px solid #eff3f4;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    z-index: 100;
-}
-
-/* Tweet Box */
-.tweet-box {
-    padding: 15px;
-    border-bottom: 1px solid #eff3f4;
-}
-
-.input-group {
-    display: flex;
-    align-items: center;
-}
-
-.avatar {
-    font-size: 40px;
-    color: #888;
-    margin-left: 10px;
-}
-
-.input-group input {
-    border: none;
-    outline: none;
-    font-size: 18px;
-    width: 100%;
-}
-
-.tweet-actions {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 10px;
-    padding-right: 50px;
-}
-
-.tweet-actions .icons i {
-    color: #1d9bf0;
-    margin-left: 15px;
-    cursor: pointer;
-}
-
-.tweet-btn {
-    background-color: #1d9bf0;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 20px;
-    font-weight: bold;
-    cursor: pointer;
-}
-
-/* Post Styling */
-.post {
-    display: flex;
-    padding: 15px;
-    border-bottom: 1px solid #eff3f4;
-    cursor: pointer;
-    transition: 0.2s;
-}
-
-.post:hover {
     background-color: #f7f9f9;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
 }
 
-.post-avatar {
-    margin-left: 10px;
-    font-size: 40px;
-    color: #888;
-}
-
-.post-body {
-    flex: 1;
-}
-
-.post-header {
-    margin-bottom: 5px;
-}
-
-.username {
-    font-weight: bold;
-    color: #0f1419;
-}
-
-.handle, .time {
-    color: #536471;
-    font-size: 14px;
-    margin-right: 5px;
-}
-
-.post-footer {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 10px;
-    max-width: 80%;
-    color: #536471;
-}
-
-.post-footer .action:hover {
-    color: #1d9bf0;
-}
-
-/* Widgets (Left) */
-.widgets {
-    width: 300px;
-    padding: 20px;
-}
-
-.search-bar {
-    background-color: #eff3f4;
-    padding: 10px 20px;
-    border-radius: 30px;
-    display: flex;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.search-bar input {
-    background: transparent;
-    border: none;
-    outline: none;
-    margin-right: 10px;
-    width: 100%;
-}
-
-.trends-container {
-    background-color: #f7f9f9;
+.auth-box {
+    background: white;
+    padding: 40px;
     border-radius: 15px;
-    padding: 15px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    text-align: center;
+    width: 90%;
+    max-width: 400px;
 }
 
-.trends-container h3 {
+.auth-box input {
+    width: 100%;
+    padding: 12px;
     margin-bottom: 15px;
-    font-size: 18px;
+    border: 1px solid #eff3f4;
+    border-radius: 5px;
 }
 
-.trend {
-    margin-bottom: 15px;
-    border-bottom: 1px solid #eff3f4;
-    padding-bottom: 10px;
+.auth-box button {
+    width: 100%;
+    padding: 12px;
+    background-color: #1d9bf0;
+    color: white;
+    border: none;
+    border-radius: 30px;
+    font-weight: bold;
+    cursor: pointer;
 }
 
-.trend span {
-    font-size: 12px;
-    color: #536471;
-    display: block;
+.auth-box span {
+    color: #1d9bf0;
+    cursor: pointer;
+    font-weight: bold;
 }
 
-.trend h4 {
-    margin: 2px 0;
+.post-image {
+    width: 100%;
+    border-radius: 15px;
+    margin-top: 10px;
+    border: 1px solid #eff3f4;
 }
