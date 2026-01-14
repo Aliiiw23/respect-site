@@ -3,85 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Respect - ريسبكت</title>
+    <title>Respect - ريسبكت العالمي</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
 </head>
 <body>
 
-    <div class="sidebar">
-        <div class="logo"><h2>Respect</h2></div>
-        <div class="sidebar-menu">
-            <a href="#" class="active"><i class="fas fa-home"></i> <span>الرئيسية</span></a>
-            <a href="#"><i class="fas fa-hashtag"></i> <span>اكتشف</span></a>
-            <a href="#"><i class="fas fa-bell"></i> <span>التنبيهات</span></a>
-            <a href="#"><i class="fas fa-envelope"></i> <span>الرسائل</span></a>
-            <a href="#"><i class="fas fa-user"></i> <span>الملف الشخصي</span></a>
-        </div>
-        <button class="sidebar-tweet-btn">نشر</button>
-    </div>
-
-    <div class="feed">
-        <div class="feed-header">
-            <h3>الرئيسية</h3>
-            <i class="fas fa-star"></i>
-        </div>
-
-        <div class="tweet-box">
-            <div class="input-group">
-                <i class="fas fa-user-circle avatar"></i>
-                <input type="text" id="tweetInput" placeholder="ماذا يحدث في Respect؟">
+    <div id="auth-container" class="auth-wrapper">
+        <div class="auth-box">
+            <h2>مرحباً في Respect</h2>
+            <div id="login-form">
+                <input type="email" id="login-email" placeholder="البريد الإلكتروني">
+                <input type="password" id="login-password" placeholder="كلمة المرور">
+                <button id="login-btn">تسجيل الدخول</button>
+                <p>ليس لديك حساب؟ <span id="show-signup">أنشئ حساباً</span></p>
             </div>
-            <div class="tweet-actions">
-                <div class="icons">
-                    <i class="far fa-image"></i>
-                    <i class="fas fa-map-marker-alt"></i>
-                </div>
-                <button id="tweetBtn" class="tweet-btn">نشر</button>
-            </div>
-        </div>
-
-        <div id="feedContainer">
-            <div class="post">
-                <div class="post-avatar">
-                    <i class="fas fa-user-circle"></i>
-                </div>
-                <div class="post-body">
-                    <div class="post-header">
-                        <span class="username">أدمن ريسبكت</span>
-                        <span class="handle">@respect_admin</span>
-                        <span class="time">. 1س</span>
-                    </div>
-                    <div class="post-content">
-                        <p>أهلاً بكم في موقع Respect الجديد! 🚀 منصة للتواصل بكل احترام.</p>
-                    </div>
-                    <div class="post-footer">
-                        <div class="action"><i class="far fa-comment"></i> <span>2</span></div>
-                        <div class="action"><i class="fas fa-retweet"></i> <span>5</span></div>
-                        <div class="action"><i class="far fa-heart"></i> <span>20</span></div>
-                    </div>
-                </div>
+            <div id="signup-form" class="hidden">
+                <input type="text" id="signup-username" placeholder="الاسم (يظهر للناس)">
+                <input type="email" id="signup-email" placeholder="البريد الإلكتروني">
+                <input type="password" id="signup-password" placeholder="كلمة المرور">
+                <button id="signup-btn">إنشاء حساب</button>
+                <p>لديك حساب؟ <span id="show-login">سجل دخولك</span></p>
             </div>
         </div>
     </div>
 
-    <div class="widgets">
-        <div class="search-bar">
-            <i class="fas fa-search"></i>
-            <input type="text" placeholder="بحث في Respect">
+    <div id="app-container" class="main-wrapper hidden">
+        <div class="sidebar">
+            <div class="logo"><h2>Respect</h2></div>
+            <div class="sidebar-menu">
+                <a href="#" class="active"><i class="fas fa-home"></i> <span>الرئيسية</span></a>
+                <a href="#" id="logout-btn" style="color: red;"><i class="fas fa-sign-out-alt"></i> <span>خروج</span></a>
+            </div>
         </div>
 
-        <div class="trends-container">
-            <h3>المتداول في Respect</h3>
-            <div class="trend">
-                <span>المتداول في العراق</span>
-                <h4>#مبرمج_محترف</h4>
-                <span>50 ألف منشور</span>
+        <div class="feed">
+            <div class="feed-header"><h3>الرئيسية</h3></div>
+            <div class="tweet-box">
+                <div class="input-group">
+                    <span id="current-user-name" style="font-weight: bold; margin-left: 10px;">..</span>
+                    <input type="text" id="tweetInput" placeholder="ماذا يحدث؟">
+                </div>
+                <div class="tweet-actions">
+                    <div class="icons">
+                        <label for="imageInput" class="image-upload-label"><i class="far fa-image"></i></label>
+                        <input type="file" id="imageInput" accept="image/*" style="display: none;">
+                        <span id="fileName" style="font-size: 12px; color: gray;"></span>
+                    </div>
+                    <button id="tweetBtn" class="tweet-btn">نشر</button>
+                </div>
+                <div id="uploadProgressBar" style="width: 0%; height: 3px; background: #1d9bf0;"></div>
             </div>
-            <div class="trend">
-                <span>تكنولوجيا</span>
-                <h4>#Netlify</h4>
-                <span>12 ألف منشور</span>
+            <div id="feedContainer"></div>
+        </div>
+
+        <div class="widgets">
+             <div class="trends-container">
+                <h3>المتداول</h3>
+                <p>النسخة العالمية 🌍</p>
             </div>
         </div>
     </div>
