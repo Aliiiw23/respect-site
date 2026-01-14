@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Respect - ريسبكت</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="logo"><h2>Respect</h2></div>
+        <div class="sidebar-menu">
+            <a href="#" class="active"><i class="fas fa-home"></i> <span>الرئيسية</span></a>
+            <a href="#"><i class="fas fa-hashtag"></i> <span>اكتشف</span></a>
+            <a href="#"><i class="fas fa-bell"></i> <span>التنبيهات</span></a>
+            <a href="#"><i class="fas fa-envelope"></i> <span>الرسائل</span></a>
+            <a href="#"><i class="fas fa-user"></i> <span>الملف الشخصي</span></a>
+        </div>
+        <button class="sidebar-tweet-btn">نشر</button>
+    </div>
+
+    <div class="feed">
+        <div class="feed-header">
+            <h3>الرئيسية</h3>
+            <i class="fas fa-star"></i>
+        </div>
+
+        <div class="tweet-box">
+            <div class="input-group">
+                <i class="fas fa-user-circle avatar"></i>
+                <input type="text" id="tweetInput" placeholder="ماذا يحدث في Respect؟">
+            </div>
+            <div class="tweet-actions">
+                <div class="icons">
+                    <i class="far fa-image"></i>
+                    <i class="fas fa-map-marker-alt"></i>
+                </div>
+                <button id="tweetBtn" class="tweet-btn">نشر</button>
+            </div>
+        </div>
+
+        <div id="feedContainer">
+            <div class="post">
+                <div class="post-avatar">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <div class="post-body">
+                    <div class="post-header">
+                        <span class="username">أدمن ريسبكت</span>
+                        <span class="handle">@respect_admin</span>
+                        <span class="time">. 1س</span>
+                    </div>
+                    <div class="post-content">
+                        <p>أهلاً بكم في موقع Respect الجديد! 🚀 منصة للتواصل بكل احترام.</p>
+                    </div>
+                    <div class="post-footer">
+                        <div class="action"><i class="far fa-comment"></i> <span>2</span></div>
+                        <div class="action"><i class="fas fa-retweet"></i> <span>5</span></div>
+                        <div class="action"><i class="far fa-heart"></i> <span>20</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="widgets">
+        <div class="search-bar">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="بحث في Respect">
+        </div>
+
+        <div class="trends-container">
+            <h3>المتداول في Respect</h3>
+            <div class="trend">
+                <span>المتداول في العراق</span>
+                <h4>#مبرمج_محترف</h4>
+                <span>50 ألف منشور</span>
+            </div>
+            <div class="trend">
+                <span>تكنولوجيا</span>
+                <h4>#Netlify</h4>
+                <span>12 ألف منشور</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
